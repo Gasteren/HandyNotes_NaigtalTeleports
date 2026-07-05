@@ -6,7 +6,7 @@
 ## Author: Frost-Lightbringer
 ## X-Curse-Project-ID: 1599102
 
-## IconTexture: Interface\ICONS\inv_misc_map_01
+## IconAtlas: FlightMaster_Argus-TaxiNode_Neutral
 
 ## DefaultState: enabled
 ## Dependencies: HandyNotes
