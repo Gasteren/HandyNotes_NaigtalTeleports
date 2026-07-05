@@ -7,21 +7,48 @@ if not HandyNotes then
 end
 
 -- Naigtal's uiMapID (Patch 12.0.7 / Midnight Void Showdown zone)
-local MAP_ID = 16943
+-- Confirmed in-game via: /dump C_Map.GetBestMapForUnit("player")
+local MAP_ID = 2600
 
 -- Icon shown for each teleport pin on the world map / minimap.
--- Swap this for any texture path you prefer (e.g. a custom TGA in a Textures/ folder).
-local ICON = "interface/icons/spell_arcane_portaldarnassus"
+-- Uses the Blizzard "FlightMaster-Argus-Taxi_Frame_Yellow" atlas. HandyNotes' pin code only
+-- ever calls SetTexture() (never SetAtlas()), so we resolve the atlas into its underlying
+-- texture file + crop coordinates once here, and pass that table as the "icon" everywhere.
+local ATLAS_NAME = "FlightMaster_Argus-TaxiNode_Neutral"
+local ICON
+
+do
+	local atlasInfo = C_Texture.GetAtlasInfo(ATLAS_NAME)
+	if atlasInfo then
+		ICON = {
+			icon = atlasInfo.file,
+			tCoordLeft = atlasInfo.leftTexCoord,
+			tCoordRight = atlasInfo.rightTexCoord,
+			tCoordTop = atlasInfo.topTexCoord,
+			tCoordBottom = atlasInfo.bottomTexCoord,
+		}
+	else
+		-- Fallback in case the atlas name ever changes/disappears.
+		print("|cffff8800HandyNotes_NaigtalTeleports:|r atlas '" .. ATLAS_NAME .. "' not found, using fallback icon.")
+		ICON = "interface/icons/spell_arcane_portaldarnassus"
+	end
+end
 
 --------------------------------------------------------------------------------
 -- NODE DATA
 --------------------------------------------------------------------------------
--- coord = HandyNotes-style packed coordinate: floor(x*10000) + y (x,y as percentages, 0-100)
--- e.g. x=47.66, y=82.09  ->  476600 + 8209  ->  use the helper below instead of doing this by hand.
-
+-- Node coordinates below are entered as percentages (matching /way, e.g. 46.68, 82.91).
+-- The C() helper converts them to HandyNotes' packed coord format.
+--------------------------------------------------------------------------------
 
 local function C(x, y)
-	return (math.floor(x * 10000) + math.floor(y))
+	-- x, y are given as percentages (0-100), matching /way output.
+	-- HandyNotes packs coords from FRACTIONS (0-1), using:
+	--   floor(x*10000+0.5)*10000 + floor(y*10000+0.5)
+	-- which it later unpacks as:
+	--   x = floor(coord/10000)/10000,  y = (coord % 10000)/10000
+	x, y = x / 100, y / 100
+	return math.floor(x * 10000 + 0.5) * 10000 + math.floor(y * 10000 + 0.5)
 end
 
 local nodes = {
@@ -47,43 +74,56 @@ local nodes = {
 -- HandyNotes plugin registration
 --------------------------------------------------------------------------------
 
-local function OnClick(coord, buttonName)
-	-- No default click behavior yet. Hook a teleport-item/spell cast here if you want
-	-- one-click travel, e.g. C_Item.UseItemByName("Manaforge Translocator Beacon").
+-- Stateless iterator: called repeatedly by HandyNotes as (nodes, previousCoord).
+-- Must return: coord, uiMapID (nil = same map queried), iconpath, scale, alpha
+-- Icon scale multiplier. HandyNotes renders world map pins at a base size of
+-- 12px, multiplied by this value (and the user's global HandyNotes icon scale
+-- setting). 4.5 -> ~54x54px at default global scale.
+local ICON_SCALE = 2.0
+
+local function iterator(t, previousCoord)
+	local coord = next(t, previousCoord)
+	if coord then
+		return coord, nil, ICON, ICON_SCALE, 1
+	end
 end
 
-local function OnEnter(coord)
+local pluginHandler = {}
+
+function pluginHandler:GetNodes2(mapID, minimap)
+	-- Naigtal already has Blizzard's own icon for this on the minimap;
+	-- only show our pins on the big world map.
+	if minimap then
+		return
+	end
+	if mapID ~= MAP_ID then
+		return
+	end
+	return iterator, nodes
+end
+
+-- Called by HandyNotes when the mouse enters a pin.
+function pluginHandler:OnEnter(uiMapID, coord)
 	local node = nodes[coord]
 	if not node then
 		return
 	end
 
-	local tooltip = HandyNotes:GetTooltip and HandyNotes:GetTooltip() or GameTooltip
-	tooltip:SetOwner(WorldMapFrame and WorldMapFrame.ScrollContainer or UIParent, "ANCHOR_RIGHT")
-	tooltip:AddLine(node.name)
-	tooltip:AddLine(node.desc, 1, 1, 1, true)
-	tooltip:Show()
+	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+	GameTooltip:AddLine(node.name)
+	GameTooltip:AddLine(node.desc, 1, 1, 1, true)
+	GameTooltip:Show()
 end
 
-local function OnLeave()
-	local tooltip = HandyNotes:GetTooltip and HandyNotes:GetTooltip() or GameTooltip
-	tooltip:Hide()
+-- Called by HandyNotes when the mouse leaves a pin.
+function pluginHandler:OnLeave(uiMapID, coord)
+	GameTooltip:Hide()
 end
 
-HandyNotes:RegisterPluginDB(ADDON_NAME, {
-	name = "Naigtal Teleports",
-	icon = ICON,
+-- Called by HandyNotes on pin click.
+function pluginHandler:OnClick(button, down, uiMapID, coord)
+	-- No default click behavior yet. Hook a teleport-item/spell cast here if you want
+	-- one-click travel, e.g. C_Item.UseItemByName("Manaforge Translocator Beacon").
+end
 
-	-- Modern HandyNotes API: coroutine-style iterator, one yield per node.
-	-- yields: coord, icon, onEnterFn, onLeaveFn, onClickFn, minimapEnabled
-	GetNodes2 = function(mapID)
-		if mapID ~= MAP_ID then
-			return
-		end
-		for coord in pairs(nodes) do
-			coroutine.yield(coord, ICON, OnEnter, OnLeave, OnClick, true)
-		end
-	end,
-}, {
-	[MAP_ID] = true,
-})
+HandyNotes:RegisterPluginDB(ADDON_NAME, pluginHandler)
