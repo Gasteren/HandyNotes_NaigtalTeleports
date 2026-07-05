@@ -18,12 +18,7 @@ local ICON = "interface/icons/spell_arcane_portaldarnassus"
 --------------------------------------------------------------------------------
 -- coord = HandyNotes-style packed coordinate: floor(x*10000) + y (x,y as percentages, 0-100)
 -- e.g. x=47.66, y=82.09  ->  476600 + 8209  ->  use the helper below instead of doing this by hand.
---
--- IMPORTANT: the x/y pairs below are PLACEHOLDERS based on rough descriptions
--- (south base camp, northern platform near Manaforge Onega, far east, far west).
--- Replace them with your own /way-recorded coordinates once you've run the
--- "Exterior Manaforge Translocator" questline and confirmed each node in-game.
---------------------------------------------------------------------------------
+
 
 local function C(x, y)
 	return (math.floor(x * 10000) + math.floor(y))

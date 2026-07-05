@@ -4,7 +4,9 @@
 ## Version: 12.0.7
 ## Notes: Adds Manaforge Translocator Network node locations for Naigtal.
 ## Author: Frost-Lightbringer
-## X-Curse-Project-ID:
+## X-Curse-Project-ID: 1599102
+
+## IconTexture: Interface\ICONS\inv_misc_map_01
 
 ## DefaultState: enabled
 ## Dependencies: HandyNotes
