@@ -1,0 +1,13 @@
+## Interface: 120007
+
+## Title: HandyNotes - Naigtal Teleports
+## Version: 12.0.7
+## Notes: Adds Manaforge Translocator Network node locations for Naigtal.
+## Author: Frost-Lightbringer
+## X-Curse-Project-ID:
+
+## DefaultState: enabled
+## Dependencies: HandyNotes
+## SavedVariablesPerCharacter: HandyNotes_NaigtalTeleportsCharDB
+
+Core.lua
