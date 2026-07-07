@@ -1,6 +1,6 @@
 # HandyNotes_NaigtalTeleports
 
-A HandyNotes plugin that plots the Manaforge Translocator Network nodes on Naigtal (Patch 12.0.7 Void Showdown zone).
+Adds Manaforge Translocator Network node locations for Naigtal
 
 ## Features
 - Marks all four translocator nodes on the world map and minimap:
