@@ -1,7 +1,7 @@
-## Interface: 120007
+## Interface: 120007, 120100
 
 ## Title: HandyNotes - Naigtal Teleports
-## Version: 12.0.7
+## Version: 12.1.0
 ## Notes: Adds Manaforge Translocator Network node locations for Naigtal.
 ## Author: Frost-Lightbringer
 ## X-Curse-Project-ID: 1599102
