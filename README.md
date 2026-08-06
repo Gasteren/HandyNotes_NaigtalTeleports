@@ -14,4 +14,5 @@ Adds Manaforge Translocator Network node locations for Naigtal
 - [HandyNotes](https://www.curseforge.com/wow/addons/handynotes) (required dependency)
 
 ## Notes
+
 Requires the "Exterior Manaforge Translocator" questline to be completed in-game before the network nodes are usable.
